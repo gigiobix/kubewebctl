@@ -1,0 +1,27 @@
+apiVersion: metacontroller.k8s.io/v1alpha1
+kind: CompositeController
+metadata:
+  name: website-controller
+spec:
+  generateSelector: true
+  resyncPeriodSeconds: 10
+  parentResource:
+    apiVersion: noverit.com/v1
+    resource: websites
+  childResources:
+  - apiVersion: apps/v1
+    resource: deployments
+    updateStrategy:
+      method: InPlace
+  - apiVersion: v1
+    resource: services
+    updateStrategy:
+      method: Recreate
+  - apiVersion: extensions/v1beta1
+    resource: ingresses
+    updateStrategy:
+      method: Recreate
+  hooks:
+    sync:
+      webhook:
+        url: http://192.168.1.103:8060/website
