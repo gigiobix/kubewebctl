@@ -40,7 +40,86 @@ Create the CRDs for the Metacontroller APIs, and the Metacontroller itself as St
     kubectl apply -f meta-controller.yaml
 
 ## Create a CRD for websites
-We are going to create a CRD for our websites as for the ``website-crd.yaml`` file
+Define a CRD for our websites as for the ``website-crd.yaml`` file
+
+```yaml
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  # name must match the spec fields below, and be in the form: <plural>.<group>
+  name: websites.noverit.com
+spec:
+  # either Namespaced or Cluster
+  scope: Namespaced
+  # group name to use for REST API: /apis/<group>/<version>
+  group: noverit.com
+  # multiple versions of the same API can be served at same type
+  versions:
+    - name: v1
+      served: true
+      storage: true
+  names:
+    kind: Website
+    singular: website
+    plural: websites
+    shortNames:
+    - ws
+  subresources:
+    status:        
+    scale:
+      specReplicasPath: .spec.replicas
+      statusReplicasPath: .status.replicas
+  validation:
+    # openAPIV3Schema is the schema for validating custom objects.
+    openAPIV3Schema:
+      properties:
+        spec:
+          properties:
+            gitRepo:
+              type: string
+            domain:
+              type: string
+            replicas:
+              type: integer
+              minimum: 0
+              maximum: 9
+  additionalPrinterColumns:
+    - name: Desired
+      type: integer
+      description: The number of desired pods
+      JSONPath: .spec.replicas
+    - name: Ready
+      type: integer
+      description: The number of ready pods 
+      JSONPath: .status.current
+    - name: Updated
+      type: integer
+      description: The number of updated pods 
+      JSONPath: .status.updated
+    - name: Available
+      type: integer
+      description: The number of available pods
+      JSONPath: .status.available
+    - name: Generation
+      type: integer
+      description: The observer generation
+      JSONPath: .status.generation
+    - name: Age
+      type: date
+      description: Creation timestamp
+      JSONPath: .metadata.creationTimestamp
+    - name: gitRepo
+      type: string
+      description: The Git repo where config files are stored
+      JSONPath: .spec.gitRepo
+    - name: Route
+      type: string
+      description: How the website is reachable from the external
+      JSONPath: .status.route
+```
+
+
+Create the CRD
 
     cd ..
     kubectl apply -f website-crd.yaml
