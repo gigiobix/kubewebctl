@@ -96,7 +96,7 @@ To define our business logic, we write a webhook that generates child objects ba
 The web hooks can be written in any programming language understanding JSON. In our case, we have a nodejs web server defined into ``./src/server.js`` file running the ``./src/hooks/sync.js`` function that actually implements our business logic.
 
 ## Deploy the webhook
-Our webhook can be packaged as a Docker image and executed as a kubernetes deployment. Because it should be reachable by the metacontroller, we will wrap it as an in-cluster kubernetes service.
+Our webhook can be packaged as a Docker image and executed as a kubernetes deployment. Because it should be reachable by the metacontroller, we will wrap it as an in-cluster kubernetes service. The file ``website-controller.yaml`` defines such components
 
 Create the controller
 
