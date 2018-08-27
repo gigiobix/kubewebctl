@@ -45,7 +45,7 @@ We are going to create a CRD for our websites as for the ``website-crd.yaml`` fi
     cd ..
     kubectl apply -f website-crd.yaml
 
-In this file, we describe a parent resource, i.e. the website with all required fields. To tell the Metacontroller how to reconcile this custom resource with the actual resurces, i.e. the pods and other objects implementing the website, we nedd to define a composite controller descriptor as for the ``website-cc.yaml`` file  
+In this file, we describe a parent resource, i.e. the website with all required fields. To tell the Metacontroller how to reconcile this custom resource with the actual resurces, i.e. the pods and other objects implementing the website, we need to define a composite controller descriptor as for the ``website-cc.yaml`` file  
 
 ```yaml
 apiVersion: metacontroller.k8s.io/v1alpha1
@@ -86,4 +86,29 @@ In this case:
   
 Create the composite controller descriptor
 
-kubectl apply -f website-cc.yaml.
+    kubectl apply -f website-cc.yaml
+
+## Write the webhook
+Metacontroller will handle the reconciliation loop for us, but we still need to tell it what our controller actually does. 
+
+To define our business logic, we write a webhook that generates child objects based on the observed status, which is provided as a JSON object in the webhook request. The webhook response will contain the desired status in JSON format. Once the metacontroller receives the response, it compares the desired status with the actual status and it will take actions by sending requests to the APIs server.
+
+The web hooks can be written in any programming language understanding JSON. In our case, we have a nodejs web server defined into ``./src/server.js`` file running the ``./src/sync.js`` function that actually implements our business logic.
+
+## Deploy the webhook
+Our webhook can be packaged as a Docker image and executed as a kubernetes deployment. Because it should be reachable by the metacontroller, we will wrap it as an in-cluster kubernetes service.
+
+Create the controller
+
+
+
+
+
+
+
+
+
+
+
+
+
