@@ -11,8 +11,11 @@ spec:
         app: website-controller
     spec:
       containers:
-      - image: kalise/k8s-website-controller:0.1
-        name: nodejs
+      - name: nodejs
+        # use 0.2 if you have nginx as ingress controller running in your cluster
+        image: kalise/k8s-website-controller:0.2
+        # use 0.1 if you have traefik as ingress controller running in your cluster
+        #image: kalise/k8s-website-controller:0.1
         ports:
         - name: http
           protocol: TCP
