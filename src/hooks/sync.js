@@ -10,9 +10,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-var service = require('./website/service.js');
-var ingress = require('./website/ingress.js');
-var deploy = require('./website/deploy.js');
+var service = require('./service/service.js');
+var ingress = require('./ingress/ingress.js');
+var deploy = require('./deploy/deploy.js');
 
 module.exports = async function (context) {
   //let now = new Date();
