@@ -100,7 +100,63 @@ Our webhook can be packaged as a Docker image and executed as a kubernetes deplo
 
 Create the controller
 
+    kubectl apply -f website-controller.yaml
 
+## Try it out
+Finally, we can create our custom website from the ``kubeo.yaml`` file
+
+```yaml
+apiVersion: noverit.com/v1
+kind: Website
+metadata:
+  namespace:
+  name: kubeo
+  labels:
+spec:
+  replicas: 3
+  gitRepo: https://github.com/kalise/kubeo.git
+  domain: noverit.com
+```
+
+Apply the file
+
+    kubectl apply -f kubeo.yaml
+
+and check the website
+
+    kubectl get ws
+    NAME  DESIRED READY UPDATED AVAIL GEN AGE  GITREPO                              ROUTE
+    kubeo 3       3     3       3     1   16m  https://github.com/kalise/kubeo.git  kubeo.noverit.com
+
+Our website custom controller should see this and then it creates the related child resources as specified in the ``website-cc.yaml`` file: a deploy and its child pods, a service, and an ingress to expose the service to the external (assuming an ingress controller is in place).
+
+Check all the created child resources:
+
+    kubectl get deploy
+    NAME      DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+    kubeo     3         3         3            3           22m
+
+    kubectl get pods
+    NAME                     READY     STATUS    RESTARTS   AGE
+    kubeo-5f7bbd9564-kf6nn   1/1       Running   0          22m
+    kubeo-5f7bbd9564-vmlc7   1/1       Running   0          22m
+    kubeo-5f7bbd9564-xdjs9   1/1       Running   0          22m
+
+    kubectl get services
+    NAME      TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
+    kubeo     ClusterIP   10.32.0.81    <none>        80/TCP    23m
+
+    kubectl get ingress
+    NAME      HOSTS               ADDRESS   PORTS     AGE
+    kubeo     kubeo.noverit.com             80        23m
+
+Now the custom controller works with the metacontroller to reconcile the actual status of the child resources according to the parent desired status.
+
+For example, scaling down the website
+
+    kubectl scale ws kubeo --replicas=0
+
+we see the controller scaling down the child deploy too that scales down the number of controlled pod.
 
 
 
