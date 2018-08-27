@@ -93,7 +93,7 @@ Metacontroller will handle the reconciliation loop for us, but we still need to 
 
 To define our business logic, we write a webhook that generates child objects based on the observed status, which is provided as a JSON object in the webhook request. The webhook response will contain the desired status in JSON format. Once the metacontroller receives the response, it compares the desired status with the actual status and it will take actions by sending requests to the APIs server.
 
-The web hooks can be written in any programming language understanding JSON. In our case, we have a nodejs web server defined into ``./src/server.js`` file running the ``./src/sync.js`` function that actually implements our business logic.
+The web hooks can be written in any programming language understanding JSON. In our case, we have a nodejs web server defined into ``./src/server.js`` file running the ``./src/hooks/sync.js`` function that actually implements our business logic.
 
 ## Deploy the webhook
 Our webhook can be packaged as a Docker image and executed as a kubernetes deployment. Because it should be reachable by the metacontroller, we will wrap it as an in-cluster kubernetes service.
