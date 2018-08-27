@@ -158,13 +158,17 @@ For example, scaling down the website
 
 we see the controller scaling down the child deploy and this will scale down the number of controlled pod.
 
+Multiple website can be created
 
+    kubectl apply -f kubia.yaml
 
+## Clean up
+Deleting the website, we'll see the metacontroller remove all the child resources too
 
+    kubectl delete ws kubeo
 
-
-
-
+## Next Steps
+Refer to the Metacontroller reposistory for further examples and in deep explanation.
 
 
 
