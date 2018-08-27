@@ -4,7 +4,7 @@ metadata:
   name: website-controller
 spec:
   generateSelector: true
-  resyncPeriodSeconds: 10
+  #resyncPeriodSeconds: 10
   parentResource:
     apiVersion: noverit.com/v1
     resource: websites
