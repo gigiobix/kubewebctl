@@ -156,7 +156,7 @@ For example, scaling down the website
 
     kubectl scale ws kubeo --replicas=0
 
-we see the controller scaling down the child deploy too that scales down the number of controlled pod.
+we see the controller scaling down the child deploy and this will scale down the number of controlled pod.
 
 
 
