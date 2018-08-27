@@ -1,0 +1,10 @@
+apiVersion: noverit.com/v1
+kind: Website
+metadata:
+  namespace:
+  name: kubia
+  labels:
+spec:
+  replicas: 3
+  gitRepo: https://github.com/kalise/kubeo.git
+  domain: noverit.com
