@@ -21,7 +21,7 @@ module.exports = async function (context) {
 
   try {
     let key = Object.keys(observed.children["Deployment.apps/v1"]);
-    console.log(key);
+    //console.log("%s - [website.js] observed is:\n%o\n", now, observed.parent);
     if (key.length > 0) {
       // a deploy has been already created      
       let currentDeploy = observed.children["Deployment.apps/v1"][key];
