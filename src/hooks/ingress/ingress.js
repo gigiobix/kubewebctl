@@ -17,7 +17,7 @@ const ingressTemplate = {
       "namespace": null,
       "name": null,
       "annotations": {
-        "kubernetes.io/ingress.class": "nginx",
+        "kubernetes.io/ingress.class": "traefik",
       }
     },
     "spec": {
