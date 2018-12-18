@@ -54,7 +54,8 @@ spec:
   # group name to use for REST API: /apis/<group>/<version>
   group: noverit.com
   # multiple versions of the same API can be served at same type
-  versions:
+   version: v1
+   versions:
     - name: v1
       served: true
       storage: true
