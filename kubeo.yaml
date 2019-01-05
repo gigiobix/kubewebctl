@@ -7,4 +7,4 @@ metadata:
 spec:
   replicas: 3
   gitRepo: https://github.com/kalise/kubeo.git
-  domain: cloud.noverit.com
+  domain: kubernetes.noverit.com
