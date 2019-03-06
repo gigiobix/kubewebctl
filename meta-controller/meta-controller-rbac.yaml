@@ -1,4 +1,15 @@
 ---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: meta-controller
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: meta-controller
+  namespace: meta-controller
+---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:

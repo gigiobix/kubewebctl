@@ -22,14 +22,12 @@ The web hooks can be written in any programming language understanding JSON.
 ## Setup
 Having a Kubernetes 1.8+ cluster running, we first to install the Metacontroller. First, clone this repo in your local working environment where you have the ``kubectl`` cli.
 
-    git clone https://github.com/kalise/kube-website-controller
-    cd kube-website-controller
+    git clone https://github.com/kalise/kubewebctl
+    cd kubewebctl
 
 Create the namespace, service account, and role/binding
 
     cd meta-controller
-    kubectl apply -f meta-controller-ns.yaml
-    kubectl apply -f meta-controller-sa.yaml
     kubectl apply -f meta-controller-rbac.yaml
 
 *Note: the metacontroller can be installed in any namespace.*
@@ -40,133 +38,14 @@ Create the CRDs for the Metacontroller APIs, and the Metacontroller itself as St
     kubectl apply -f meta-controller.yaml
 
 ## Create a CRD for websites
-Define a CRD for our websites as for the ``website-crd.yaml`` file
+Create a CRD as for the ``web-crd.yaml`` file
 
-```yaml
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  # name must match the spec fields below, and be in the form: <plural>.<group>
-  name: websites.noverit.com
-spec:
-  # either Namespaced or Cluster
-  scope: Namespaced
-  # group name to use for REST API: /apis/<group>/<version>
-  group: noverit.com
-  # multiple versions of the same API can be served at same type
-   version: v1
-   versions:
-    - name: v1
-      served: true
-      storage: true
-  names:
-    kind: Website
-    singular: website
-    plural: websites
-    shortNames:
-    - ws
-  subresources:
-    status:        
-    scale:
-      specReplicasPath: .spec.replicas
-      statusReplicasPath: .status.replicas
-  validation:
-    # openAPIV3Schema is the schema for validating custom objects.
-    openAPIV3Schema:
-      properties:
-        spec:
-          properties:
-            gitRepo:
-              type: string
-            domain:
-              type: string
-            replicas:
-              type: integer
-              minimum: 0
-              maximum: 9
-  additionalPrinterColumns:
-    - name: Desired
-      type: integer
-      description: The number of desired pods
-      JSONPath: .spec.replicas
-    - name: Ready
-      type: integer
-      description: The number of ready pods 
-      JSONPath: .status.current
-    - name: Updated
-      type: integer
-      description: The number of updated pods 
-      JSONPath: .status.updated
-    - name: Available
-      type: integer
-      description: The number of available pods
-      JSONPath: .status.available
-    - name: Generation
-      type: integer
-      description: The observer generation
-      JSONPath: .status.generation
-    - name: Age
-      type: date
-      description: Creation timestamp
-      JSONPath: .metadata.creationTimestamp
-    - name: gitRepo
-      type: string
-      description: The Git repo where config files are stored
-      JSONPath: .spec.gitRepo
-    - name: Route
-      type: string
-      description: How the website is reachable from the external
-      JSONPath: .status.route
-```
+    cd ../webctl
+    kubectl apply -f web-crd.yaml
 
+In this file, we describe a parent resource, i.e. the website with all required fields.
 
-Create the CRD
-
-    cd ..
-    kubectl apply -f website-crd.yaml
-
-In this file, we describe a parent resource, i.e. the website with all required fields. To tell the Metacontroller how to reconcile this custom resource with the actual resurces, i.e. the pods and other objects implementing the website, we need to define a composite controller descriptor as for the ``website-cc.yaml`` file  
-
-```yaml
-apiVersion: metacontroller.k8s.io/v1alpha1
-kind: CompositeController
-metadata:
-  name: website-controller
-spec:
-  generateSelector: true
-  parentResource:
-    apiVersion: noverit.com/v1
-    resource: websites
-  childResources:
-  - apiVersion: apps/v1
-    resource: deployments
-    updateStrategy:
-      method: InPlace
-  - apiVersion: v1
-    resource: services
-    updateStrategy:
-      method: Recreate
-  - apiVersion: extensions/v1beta1
-    resource: ingresses
-    updateStrategy:
-      method: Recreate
-  hooks:
-    sync:
-      webhook:
-        url: http://website-controller/sync
-```
-
-In this case:
-
-  1. We set ``generateSelector`` to  let the controller create a unique label selector for the parent object and use it for identify the child resources.
-  2. The ``parentResource`` is our custom resource called ``websites``.
-  3. The parent resource represents objects that are composed of other objects called children. The ``childResources`` list is composed by a Deployment, a Service and an Ingress.
-  4. For each child resource, we can optionally set an ``updateStrategy`` to specify what to do if a child object needs to be updated. Since a service and an ingress are effectively immutable, we use the ``Recreate`` method for those, which means “delete the outdated object and create a new one”. For the deployment we use instead the ``InPlace`` update method, which means "update the outdated object that differs from the desired state".
-  5. The ``hooks`` tells Metacontroller how to invoke the webhook, which is where we’ll define the business logic of our website controller. In our example, we use the embedded DNS to resolve the address of the ``website-controller`` service to reach the pod where our custom controller is running.
-  
-Create the composite controller descriptor
-
-    kubectl apply -f website-cc.yaml
+To tell the Metacontroller how to reconcile this custom resource with the actual resurces, i.e. the pods and other objects implementing the website, we need to define a custom controller as for the next section.
 
 ## Write the webhook
 Metacontroller will handle the reconciliation loop for us, but we still need to tell it what our controller actually does. 
@@ -176,17 +55,17 @@ To define our business logic, we write a webhook that generates child objects ba
 The web hooks can be written in any programming language understanding JSON. In our case, we have a nodejs web server defined into ``./src/server.js`` file running the ``./src/hooks/sync.js`` function that actually implements our business logic.
 
 ## Deploy the webhook
-Our webhook can be packaged as a Docker image and executed as a kubernetes deployment. Because it should be reachable by the metacontroller, we will wrap it as an in-cluster kubernetes service. The file ``website-controller.yaml`` defines such components
+Our webhook can be packaged as a Docker image and executed as a kubernetes deployment. Because it should be reachable by the metacontroller, we will wrap it as an in-cluster kubernetes service. The file ``web-controller.yaml`` defines such components
 
 Create the controller
 
-    kubectl apply -f website-controller.yaml
+    kubectl apply -f web-controller.yaml
 
 ## Try it out
 Finally, we can create our custom website from the ``kubeo.yaml`` file
 
 ```yaml
-apiVersion: noverit.com/v1
+apiVersion: applications.clastix.io/v1
 kind: Website
 metadata:
   namespace:
@@ -195,7 +74,7 @@ metadata:
 spec:
   replicas: 3
   gitRepo: https://github.com/kalise/kubeo.git
-  domain: noverit.com
+  domain: web.clastix.io
 ```
 
 Apply the file
@@ -205,10 +84,10 @@ Apply the file
 and check the website
 
     kubectl get ws
-    NAME  DESIRED READY UPDATED AVAIL GEN AGE  GITREPO                              ROUTE
-    kubeo 3       3     3       3     1   16m  https://github.com/kalise/kubeo.git  kubeo.noverit.com
+    NAME  DESIRED READY UPDATED AVAIL GEN AGE  ROUTE
+    kubeo 3       3     3       3     1   16m  kubeo.noverit.com
 
-Our website custom controller should see this and then it creates the related child resources as specified in the ``website-cc.yaml`` file: a deploy and its child pods, a service, and an ingress to expose the service to the external (assuming an ingress controller is in place).
+Our website custom controller should see this and then it creates the related child resources: a deploy and its child pods, a service, and an ingress to expose the service to the external (assuming an ingress controller is in place).
 
 Check all the created child resources:
 
@@ -227,8 +106,8 @@ Check all the created child resources:
     kubeo     ClusterIP   10.32.0.81    <none>        80/TCP    23m
 
     kubectl get ingress
-    NAME      HOSTS               ADDRESS   PORTS     AGE
-    kubeo     kubeo.noverit.com             80        23m
+    NAME      HOSTS                  ADDRESS   PORTS     AGE
+    kubeo     kubeo.web.clastix.io             80        23m
 
 Now the custom controller works with the metacontroller to reconcile the actual status of the child resources according to the parent desired status.
 
@@ -237,10 +116,6 @@ For example, scaling down the website
     kubectl scale ws kubeo --replicas=0
 
 we see the controller scaling down the child deploy and this will scale down the number of controlled pod.
-
-Multiple website can be created
-
-    kubectl apply -f kubia.yaml
 
 ## Clean up
 Deleting the website, we'll see the metacontroller remove all the child resources too

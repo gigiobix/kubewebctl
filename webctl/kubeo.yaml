@@ -1,10 +1,10 @@
-apiVersion: noverit.com/v1
+apiVersion: applications.clastix.io/v1
 kind: Website
 metadata:
   namespace:
-  name: kubia
+  name: kubeo
   labels:
 spec:
   replicas: 3
   gitRepo: https://github.com/kalise/kubeo.git
-  domain: kubernetes.noverit.com
+  domain: web.clastix.io
