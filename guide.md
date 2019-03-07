@@ -45,21 +45,21 @@ Create a CRD as for the ``web-crd.yaml`` file
 
 In this file, we describe a parent resource, i.e. the website with all required fields.
 
-To tell the Metacontroller how to reconcile this custom resource with the actual resurces, i.e. the pods and other objects implementing the website, we need to define a custom controller as for the next section.
+To tell the Metacontroller how to reconcile this custom resource with the actual resurces, i.e. the pods and other objects implementing the website, we need to define a composite controller as for the ``web-cc.yaml`` file.
 
 ## Write the webhook
-Metacontroller will handle the reconciliation loop for us, but we still need to tell it what our controller actually does. 
+Now Metacontroller will handle the reconciliation loop for us, but we still need to tell it what our controller actually does. 
 
 To define our business logic, we write a webhook that generates child objects based on the observed status, which is provided as a JSON object in the webhook request. The webhook response will contain the desired status in JSON format. Once the metacontroller receives the response, it compares the desired status with the actual status and it will take actions by sending requests to the APIs server.
 
 The web hooks can be written in any programming language understanding JSON. In our case, we have a nodejs web server defined into ``./src/server.js`` file running the ``./src/hooks/sync.js`` function that actually implements our business logic.
 
 ## Deploy the webhook
-Our webhook can be packaged as a Docker image and executed as a kubernetes deployment. Because it should be reachable by the metacontroller, we will wrap it as an in-cluster kubernetes service. The file ``web-controller.yaml`` defines such components
+Our webhook can be packaged as a Docker image and executed as a kubernetes deployment. Because it should be reachable by the metacontroller, we will wrap it as an in-cluster kubernetes service. The file ``webctl.yaml`` defines such components
 
 Create the controller
 
-    kubectl apply -f web-controller.yaml
+    kubectl apply -f webctl.yaml
 
 ## Try it out
 Finally, we can create our custom website from the ``kubeo.yaml`` file
