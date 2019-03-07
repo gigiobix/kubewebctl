@@ -18,25 +18,25 @@ const hook = require('./hooks/hook.js');
 const server = http.createServer();
 let now = new Date();
 server.listen(PORT, function(){
-    console.log("%s [controller.js] Server listening on: %s", now, PORT);
+    console.log("%s [server.js] Server listening on: %s", now, PORT);
 });
 
 server.on('error', function(error) {
     let now = new Date();
-    console.log("%s [controller.js] - Server Error", now);
+    console.log("%s [server.js] - Server Error", now);
     response.writeHead(500, {'Content-Type': 'application/json'});
     response.end(error.toString());
 });
 
 server.on('request', function(request,response){
     let now = new Date();
-    console.log("%s [controller.js] - Got a request", now);
+    console.log("%s [server.js] - Got a request", now);
     if (request.headers['content-type'] === 'application/json') {
         let body = [];
         request.on('error', (error) => {
             response.writeHead(400, {'Content-Type': 'text/plain'});
             response.end(error.toString());
-            console.log("%s [controller.js] - Sent the response", now);
+            console.log("%s [server.js] - Sent the response 400", now);
         });
         request.on('data', (chunk) => {
             body.push(chunk);
@@ -47,17 +47,17 @@ server.on('request', function(request,response){
             hook(observed).then((desired) => {
                 response.writeHead(200, {'Content-Type': 'application/json'});
                 response.end(JSON.stringify(desired));
-                console.log("%s [controller.js] - Sent the response", now);
+                console.log("%s [server.js] - Sent the response 200", now);
               }, (error) => {
                 response.writeHead(500, {'Content-Type': 'text/plain'});
                 response.end(error.toString());
-                console.log("%s [controller.js] - Sent the response", now);
+                console.log("%s [server.js] - Sent the response 500", now);
               });
         });
     } else {
         response.writeHead(415, {'Content-Type': 'text/plain'});
         response.end('Unsupported Media Type');
-        console.log("%s [controller.js] - Sent the response", now);
+        console.log("%s [server.js] - Sent the response 415", now);
     }  
 });
 

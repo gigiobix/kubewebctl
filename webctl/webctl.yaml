@@ -1,0 +1,40 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webctl
+  labels:
+    app: webctl
+  namespace: meta-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webctl
+  template:
+    metadata:
+      labels:
+        app: webctl
+    spec:
+      restartPolicy: Always
+      containers:
+      - name: webhook
+        image: kalise/webctl:latest
+        resources:
+        env:
+        - name: PORT
+          value: "8080"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webctl
+  namespace: meta-controller
+  labels:
+    app: webctl
+spec:
+  selector:
+    app: webctl
+  ports:
+  - port: 80
+    targetPort: 8080
